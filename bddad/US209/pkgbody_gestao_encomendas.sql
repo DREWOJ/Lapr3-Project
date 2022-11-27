@@ -24,8 +24,8 @@ CREATE OR REPLACE PACKAGE BODY gestao_encomendas AS
       RAISE cliente_inexistente;
     END IF;
 
-    INSERT INTO encomenda (id_cliente, data_vencimento_pagamento, morada_entrega, cod_postal_entrega)
-    VALUES (id_cliente, SYSDATE + 30, morada_entrega, cod_postal_entrega)
+    INSERT INTO encomenda (id_cliente, data_vencimento_pagamento, data_registo, morada_entrega, cod_postal_entrega)
+    VALUES (id_cliente, SYSDATE + 30, SYSDATE, morada_entrega, cod_postal_entrega)
     RETURNING id_encomenda INTO id_encomenda;
 
     valor_encomenda := 0;
@@ -111,8 +111,8 @@ CREATE OR REPLACE PACKAGE BODY gestao_encomendas AS
       RAISE cliente_inexistente;
     END IF;
 
-    INSERT INTO encomenda (id_cliente, data_vencimento_pagamento, morada_entrega, cod_postal_entrega)
-    VALUES (id_cliente, SYSDATE + 30, morada_entrega, cod_postal_entrega)
+    INSERT INTO encomenda (id_cliente, data_vencimento_pagamento, data_registo, morada_entrega, cod_postal_entrega)
+    VALUES (id_cliente, SYSDATE + 30, SYSDATE, morada_entrega, cod_postal_entrega)
     RETURNING id_encomenda INTO id_encomenda;
 
     valor_encomenda := 0;
@@ -237,7 +237,7 @@ CREATE OR REPLACE PACKAGE BODY gestao_encomendas AS
 
   PROCEDURE listar_encomendas IS
     CURSOR encomendas IS
-      SELECT id_encomenda, id_cliente, data_entrega, data_pagamento
+      SELECT id_encomenda, id_cliente, data_entrega, data_pagamento, data_registo
       FROM encomenda
       ORDER BY id_encomenda;
     id_encomenda ENCOMENDA.id_encomenda%TYPE;
@@ -246,51 +246,56 @@ CREATE OR REPLACE PACKAGE BODY gestao_encomendas AS
     valor FLOAT;
     data_entrega ENCOMENDA.data_entrega%TYPE;
     data_pagamento ENCOMENDA.data_pagamento%TYPE;
+    data_registo ENCOMENDA.data_registo%TYPE;
   BEGIN
     DBMS_OUTPUT.PUT_LINE('Encomendas:');
     DBMS_OUTPUT.PUT_LINE('');
 
-    FOR encomenda IN encomendas LOOP
-      id_encomenda := encomenda.id_encomenda;
-      id_cliente := encomenda.id_cliente;
-      data_entrega := encomenda.data_entrega;
-      data_pagamento := encomenda.data_pagamento;
+    IF encomendas%NOTFOUND THEN
+      DBMS_OUTPUT.PUT_LINE('Nao existem encomendas.');
+    ELSE
+      FOR encomenda IN encomendas LOOP
+        id_encomenda := encomenda.id_encomenda;
+        id_cliente := encomenda.id_cliente;
+        data_entrega := encomenda.data_entrega;
+        data_pagamento := encomenda.data_pagamento;
 
-      SELECT SUM(preco_unitario * quantidade * (1 + iva/100))
-      INTO valor
-      FROM produtoencomenda 
-      WHERE id_encomenda = id_encomenda;
+        SELECT SUM(preco_unitario * quantidade * (1 + iva/100))
+        INTO valor
+        FROM produtoencomenda 
+        WHERE id_encomenda = id_encomenda;
 
-      SELECT nome
-      INTO nome_cliente
-      FROM cliente
-      WHERE id_cliente = id_cliente;
+        SELECT nome
+        INTO nome_cliente
+        FROM cliente
+        WHERE id_cliente = id_cliente;
 
-      DBMS_OUTPUT.PUT_LINE('Encomenda ' || id_encomenda || ' do cliente ' || nome_cliente || ' no valor de ' || TRUNC(valor, 2) || ' euros.');
+        DBMS_OUTPUT.PUT_LINE('Encomenda ' || id_encomenda || ' do cliente ' || nome_cliente || ' no valor de ' || TRUNC(valor, 2) || ' euros, registada a ' || TO_CHAR(data_registo, 'DD/MM/YYYY') || '.');
 
-      IF data_entrega IS NOT NULL THEN
-        DBMS_OUTPUT.PUT_LINE('Entregue a ' || TO_CHAR(data_entrega, 'DD/MM/YYYY') || '.');
-      END IF;
+        IF data_entrega IS NOT NULL THEN
+          DBMS_OUTPUT.PUT_LINE('Entregue a ' || TO_CHAR(data_entrega, 'DD/MM/YYYY') || '.');
+        END IF;
 
-      IF data_pagamento IS NOT NULL THEN
-        DBMS_OUTPUT.PUT_LINE('Pagamento registado a ' || TO_CHAR(data_pagamento, 'DD/MM/YYYY') || '.');
-      END IF;
+        IF data_pagamento IS NOT NULL THEN
+          DBMS_OUTPUT.PUT_LINE('Pagamento registado a ' || TO_CHAR(data_pagamento, 'DD/MM/YYYY') || '.');
+        END IF;
 
-      IF data_pagamento IS NOT NULL THEN
-        DBMS_OUTPUT.PUT_LINE('Estado: PAGA.');
-      ELSIF data_entrega IS NOT NULL THEN
-        DBMS_OUTPUT.PUT_LINE('Estado: ENTREGUE.');
-      ELSE
-        DBMS_OUTPUT.PUT_LINE('Estado: REGISTADA.');
-      END IF;
+        IF data_pagamento IS NOT NULL THEN
+          DBMS_OUTPUT.PUT_LINE('Estado: PAGA.');
+        ELSIF data_entrega IS NOT NULL THEN
+          DBMS_OUTPUT.PUT_LINE('Estado: ENTREGUE.');
+        ELSE
+          DBMS_OUTPUT.PUT_LINE('Estado: REGISTADA.');
+        END IF;
 
-      DBMS_OUTPUT.PUT_LINE('');
-    END LOOP;
+        DBMS_OUTPUT.PUT_LINE('');
+      END LOOP;
+    END IF;
   END listar_encomendas;
 
   PROCEDURE listar_encomendas_registadas IS
     CURSOR encomendas IS
-      SELECT id_encomenda, id_cliente
+      SELECT id_encomenda, id_cliente, data_registo
       FROM encomenda
       WHERE data_entrega IS NULL AND data_pagamento IS NULL
       ORDER BY id_encomenda;
@@ -298,35 +303,41 @@ CREATE OR REPLACE PACKAGE BODY gestao_encomendas AS
     id_cliente ENCOMENDA.id_cliente%TYPE;
     nome_cliente CLIENTE.nome%TYPE;
     valor FLOAT;
+    data_registo ENCOMENDA.data_registo%TYPE;
   BEGIN
     DBMS_OUTPUT.PUT_LINE('Encomendas REGISTADAS:');
     DBMS_OUTPUT.PUT_LINE('');
 
-    FOR encomenda IN encomendas LOOP
-      id_encomenda := encomenda.id_encomenda;
-      id_cliente := encomenda.id_cliente;
+    IF encomendas%NOTFOUND THEN
+      DBMS_OUTPUT.PUT_LINE('Nao existem encomendas.');
+    ELSE
+      FOR encomenda IN encomendas LOOP
+        id_encomenda := encomenda.id_encomenda;
+        id_cliente := encomenda.id_cliente;
+        data_registo := encomenda.data_registo;
 
-      SELECT SUM(preco_unitario * quantidade * (1 + iva/100))
-      INTO valor
-      FROM produtoencomenda 
-      WHERE id_encomenda = id_encomenda;
+        SELECT SUM(preco_unitario * quantidade * (1 + iva/100))
+        INTO valor
+        FROM produtoencomenda 
+        WHERE id_encomenda = id_encomenda;
 
-      SELECT nome
-      INTO nome_cliente
-      FROM cliente
-      WHERE id_cliente = id_cliente;
+        SELECT nome
+        INTO nome_cliente
+        FROM cliente
+        WHERE id_cliente = id_cliente;
 
-      DBMS_OUTPUT.PUT_LINE('Encomenda ' || id_encomenda || ' do cliente ' || nome_cliente || ' no valor de ' || TRUNC(valor, 2) || ' euros.');
+        DBMS_OUTPUT.PUT_LINE('Encomenda ' || id_encomenda || ' do cliente ' || nome_cliente || ' no valor de ' || TRUNC(valor, 2) || ' euros, registada a ' || TO_CHAR(data_registo, 'DD/MM/YYYY') || '.');
 
-      DBMS_OUTPUT.PUT_LINE('Estado: REGISTADA.');
+        DBMS_OUTPUT.PUT_LINE('Estado: REGISTADA.');
 
-      DBMS_OUTPUT.PUT_LINE('');
-    END LOOP;
+        DBMS_OUTPUT.PUT_LINE('');
+      END LOOP;
+    END IF;
   END listar_encomendas_registadas;
 
   PROCEDURE listar_encomendas_entregues IS
     CURSOR encomendas IS
-      SELECT id_encomenda, id_cliente, data_entrega
+      SELECT id_encomenda, id_cliente, data_entrega, data_registo
       FROM encomenda
       WHERE data_entrega IS NOT NULL AND data_pagamento IS NULL
       ORDER BY id_encomenda;
@@ -334,39 +345,45 @@ CREATE OR REPLACE PACKAGE BODY gestao_encomendas AS
     id_cliente ENCOMENDA.id_cliente%TYPE;
     nome_cliente CLIENTE.nome%TYPE;
     data_entrega ENCOMENDA.data_entrega%TYPE;
+    data_registo ENCOMENDA.data_registo%TYPE;
     valor FLOAT;
   BEGIN
     DBMS_OUTPUT.PUT_LINE('Encomendas ENTREGUES:');
     DBMS_OUTPUT.PUT_LINE('');
 
-    FOR encomenda IN encomendas LOOP
-      id_encomenda := encomenda.id_encomenda;
-      id_cliente := encomenda.id_cliente;
-      data_entrega := encomenda.data_entrega;
+    IF encomendas%NOTFOUND THEN
+      DBMS_OUTPUT.PUT_LINE('Nao existem encomendas.');
+    ELSE
+      FOR encomenda IN encomendas LOOP
+        id_encomenda := encomenda.id_encomenda;
+        id_cliente := encomenda.id_cliente;
+        data_entrega := encomenda.data_entrega;
+        data_registo := encomenda.data_registo;
 
-      SELECT SUM(preco_unitario * quantidade * (1 + iva/100))
-      INTO valor
-      FROM produtoencomenda 
-      WHERE id_encomenda = id_encomenda;
+        SELECT SUM(preco_unitario * quantidade * (1 + iva/100))
+        INTO valor
+        FROM produtoencomenda 
+        WHERE id_encomenda = id_encomenda;
 
-      SELECT nome
-      INTO nome_cliente
-      FROM cliente
-      WHERE id_cliente = id_cliente;
+        SELECT nome
+        INTO nome_cliente
+        FROM cliente
+        WHERE id_cliente = id_cliente;
 
-      DBMS_OUTPUT.PUT_LINE('Encomenda ' || id_encomenda || ' do cliente ' || nome_cliente || ' no valor de ' || TRUNC(valor, 2) || ' euros.');
+        DBMS_OUTPUT.PUT_LINE('Encomenda ' || id_encomenda || ' do cliente ' || nome_cliente || ' no valor de ' || TRUNC(valor, 2) || ' euros, registada a ' || TO_CHAR(data_registo, 'DD/MM/YYYY') || '.');
 
-      DBMS_OUTPUT.PUT_LINE('Entregue a ' || TO_CHAR(data_entrega, 'DD/MM/YYYY') || '.');
+        DBMS_OUTPUT.PUT_LINE('Entregue a ' || TO_CHAR(data_entrega, 'DD/MM/YYYY') || '.');
 
-      DBMS_OUTPUT.PUT_LINE('Estado: ENTREGUE.');
+        DBMS_OUTPUT.PUT_LINE('Estado: ENTREGUE.');
 
-      DBMS_OUTPUT.PUT_LINE('');
-    END LOOP;
+        DBMS_OUTPUT.PUT_LINE('');
+      END LOOP;
+    END IF;
   END listar_encomendas_entregues;
 
   PROCEDURE listar_encomendas_pagas IS
     CURSOR encomendas IS
-      SELECT id_encomenda, id_cliente, data_entrega, data_pagamento
+      SELECT id_encomenda, id_cliente, data_entrega, data_pagamento, data_registo
       FROM encomenda
       WHERE data_pagamento IS NOT NULL
       ORDER BY id_encomenda;
@@ -376,37 +393,43 @@ CREATE OR REPLACE PACKAGE BODY gestao_encomendas AS
     valor FLOAT;
     data_entrega ENCOMENDA.data_entrega%TYPE;
     data_pagamento ENCOMENDA.data_pagamento%TYPE;
+    data_registo ENCOMENDA.data_registo%TYPE;
   BEGIN
     DBMS_OUTPUT.PUT_LINE('Encomendas PAGAS:');
     DBMS_OUTPUT.PUT_LINE('');
 
-    FOR encomenda IN encomendas LOOP
-      id_encomenda := encomenda.id_encomenda;
-      id_cliente := encomenda.id_cliente;
-      data_entrega := encomenda.data_entrega;
-      data_pagamento := encomenda.data_pagamento;
+    IF encomendas%NOTFOUND THEN
+      DBMS_OUTPUT.PUT_LINE('Nao existem encomendas.');
+    ELSE
+      FOR encomenda IN encomendas LOOP
+        id_encomenda := encomenda.id_encomenda;
+        id_cliente := encomenda.id_cliente;
+        data_entrega := encomenda.data_entrega;
+        data_pagamento := encomenda.data_pagamento;
+        data_registo := encomenda.data_registo;
 
-      SELECT SUM(preco_unitario * quantidade * (1 + iva/100))
-      INTO valor
-      FROM produtoencomenda 
-      WHERE id_encomenda = id_encomenda;
+        SELECT SUM(preco_unitario * quantidade * (1 + iva/100))
+        INTO valor
+        FROM produtoencomenda 
+        WHERE id_encomenda = id_encomenda;
 
-      SELECT nome
-      INTO nome_cliente
-      FROM cliente
-      WHERE id_cliente = id_cliente;
+        SELECT nome
+        INTO nome_cliente
+        FROM cliente
+        WHERE id_cliente = id_cliente;
 
-      DBMS_OUTPUT.PUT_LINE('Encomenda ' || id_encomenda || ' do cliente ' || nome_cliente || ' no valor de ' || TRUNC(valor, 2) || ' euros.');
+        DBMS_OUTPUT.PUT_LINE('Encomenda ' || id_encomenda || ' do cliente ' || nome_cliente || ' no valor de ' || TRUNC(valor, 2) || ' euros, registada a ' || TO_CHAR(data_registo, 'DD/MM/YYYY') || '.');
 
-      IF data_entrega IS NOT NULL THEN
-        DBMS_OUTPUT.PUT_LINE('Entregue a ' || TO_CHAR(data_entrega, 'DD/MM/YYYY') || '.');
-      END IF;
+        IF data_entrega IS NOT NULL THEN
+          DBMS_OUTPUT.PUT_LINE('Entregue a ' || TO_CHAR(data_entrega, 'DD/MM/YYYY') || '.');
+        END IF;
 
-      DBMS_OUTPUT.PUT_LINE('Pagamento registado a ' || TO_CHAR(data_pagamento, 'DD/MM/YYYY') || '.');
+        DBMS_OUTPUT.PUT_LINE('Pagamento registado a ' || TO_CHAR(data_pagamento, 'DD/MM/YYYY') || '.');
 
-      DBMS_OUTPUT.PUT_LINE('Estado: PAGA.');
-  
-      DBMS_OUTPUT.PUT_LINE('');
-    END LOOP;
+        DBMS_OUTPUT.PUT_LINE('Estado: PAGA.');
+    
+        DBMS_OUTPUT.PUT_LINE('');
+      END LOOP;
+    END IF;
   END listar_encomendas_pagas;
 END gestao_encomendas;
