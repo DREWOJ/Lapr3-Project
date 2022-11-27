@@ -111,8 +111,8 @@ CREATE OR REPLACE PACKAGE BODY gestao_encomendas AS
       RAISE cliente_inexistente;
     END IF;
 
-    INSERT INTO encomenda (id_cliente, data_vencimento_pagamento, valor, morada_entrega, cod_postal_entrega)
-    VALUES (id_cliente, SYSDATE + 30, 0, morada_entrega, cod_postal_entrega)
+    INSERT INTO encomenda (id_cliente, data_vencimento_pagamento, morada_entrega, cod_postal_entrega)
+    VALUES (id_cliente, SYSDATE + 30, morada_entrega, cod_postal_entrega)
     RETURNING id_encomenda INTO id_encomenda;
 
     valor_encomenda := 0;
@@ -237,7 +237,7 @@ CREATE OR REPLACE PACKAGE BODY gestao_encomendas AS
 
   PROCEDURE listar_encomendas IS
     CURSOR encomendas IS
-      SELECT id_encomenda, id_cliente, valor, data_entrega, data_pagamento
+      SELECT id_encomenda, id_cliente, data_entrega, data_pagamento
       FROM encomenda
       ORDER BY id_encomenda;
     id_encomenda ENCOMENDA.id_encomenda%TYPE;
@@ -290,7 +290,7 @@ CREATE OR REPLACE PACKAGE BODY gestao_encomendas AS
 
   PROCEDURE listar_encomendas_registadas IS
     CURSOR encomendas IS
-      SELECT id_encomenda, id_cliente, valor
+      SELECT id_encomenda, id_cliente
       FROM encomenda
       WHERE data_entrega IS NULL AND data_pagamento IS NULL
       ORDER BY id_encomenda;
@@ -326,7 +326,7 @@ CREATE OR REPLACE PACKAGE BODY gestao_encomendas AS
 
   PROCEDURE listar_encomendas_entregues IS
     CURSOR encomendas IS
-      SELECT id_encomenda, id_cliente, valor, data_entrega
+      SELECT id_encomenda, id_cliente, data_entrega
       FROM encomenda
       WHERE data_entrega IS NOT NULL AND data_pagamento IS NULL
       ORDER BY id_encomenda;
@@ -366,7 +366,7 @@ CREATE OR REPLACE PACKAGE BODY gestao_encomendas AS
 
   PROCEDURE listar_encomendas_pagas IS
     CURSOR encomendas IS
-      SELECT id_encomenda, id_cliente, valor, data_entrega, data_pagamento
+      SELECT id_encomenda, id_cliente, data_entrega, data_pagamento
       FROM encomenda
       WHERE data_pagamento IS NOT NULL
       ORDER BY id_encomenda;
