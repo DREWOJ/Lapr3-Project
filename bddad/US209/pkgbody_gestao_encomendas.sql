@@ -287,4 +287,126 @@ CREATE OR REPLACE PACKAGE BODY gestao_encomendas AS
       DBMS_OUTPUT.PUT_LINE('');
     END LOOP;
   END listar_encomendas;
+
+  PROCEDURE listar_encomendas_registadas IS
+    CURSOR encomendas IS
+      SELECT id_encomenda, id_cliente, valor
+      FROM encomenda
+      WHERE data_entrega IS NULL AND data_pagamento IS NULL
+      ORDER BY id_encomenda;
+    id_encomenda ENCOMENDA.id_encomenda%TYPE;
+    id_cliente ENCOMENDA.id_cliente%TYPE;
+    nome_cliente CLIENTE.nome%TYPE;
+    valor FLOAT;
+  BEGIN
+    DBMS_OUTPUT.PUT_LINE('Encomendas REGISTADAS:');
+    DBMS_OUTPUT.PUT_LINE('');
+
+    FOR encomenda IN encomendas LOOP
+      id_encomenda := encomenda.id_encomenda;
+      id_cliente := encomenda.id_cliente;
+
+      SELECT SUM(preco_unitario * quantidade * (1 + iva/100))
+      INTO valor
+      FROM produtoencomenda 
+      WHERE id_encomenda = id_encomenda;
+
+      SELECT nome
+      INTO nome_cliente
+      FROM cliente
+      WHERE id_cliente = id_cliente;
+
+      DBMS_OUTPUT.PUT_LINE('Encomenda ' || id_encomenda || ' do cliente ' || nome_cliente || ' no valor de ' || TRUNC(valor, 2) || ' euros.');
+
+      DBMS_OUTPUT.PUT_LINE('Estado: REGISTADA.');
+
+      DBMS_OUTPUT.PUT_LINE('');
+    END LOOP;
+  END listar_encomendas_registadas;
+
+  PROCEDURE listar_encomendas_entregues IS
+    CURSOR encomendas IS
+      SELECT id_encomenda, id_cliente, valor, data_entrega
+      FROM encomenda
+      WHERE data_entrega IS NOT NULL AND data_pagamento IS NULL
+      ORDER BY id_encomenda;
+    id_encomenda ENCOMENDA.id_encomenda%TYPE;
+    id_cliente ENCOMENDA.id_cliente%TYPE;
+    nome_cliente CLIENTE.nome%TYPE;
+    data_entrega ENCOMENDA.data_entrega%TYPE;
+    valor FLOAT;
+  BEGIN
+    DBMS_OUTPUT.PUT_LINE('Encomendas ENTREGUES:');
+    DBMS_OUTPUT.PUT_LINE('');
+
+    FOR encomenda IN encomendas LOOP
+      id_encomenda := encomenda.id_encomenda;
+      id_cliente := encomenda.id_cliente;
+      data_entrega := encomenda.data_entrega;
+
+      SELECT SUM(preco_unitario * quantidade * (1 + iva/100))
+      INTO valor
+      FROM produtoencomenda 
+      WHERE id_encomenda = id_encomenda;
+
+      SELECT nome
+      INTO nome_cliente
+      FROM cliente
+      WHERE id_cliente = id_cliente;
+
+      DBMS_OUTPUT.PUT_LINE('Encomenda ' || id_encomenda || ' do cliente ' || nome_cliente || ' no valor de ' || TRUNC(valor, 2) || ' euros.');
+
+      DBMS_OUTPUT.PUT_LINE('Entregue a ' || TO_CHAR(data_entrega, 'DD/MM/YYYY') || '.');
+
+      DBMS_OUTPUT.PUT_LINE('Estado: ENTREGUE.');
+
+      DBMS_OUTPUT.PUT_LINE('');
+    END LOOP;
+  END listar_encomendas_entregues;
+
+  PROCEDURE listar_encomendas_pagas IS
+    CURSOR encomendas IS
+      SELECT id_encomenda, id_cliente, valor, data_entrega, data_pagamento
+      FROM encomenda
+      WHERE data_pagamento IS NOT NULL
+      ORDER BY id_encomenda;
+    id_encomenda ENCOMENDA.id_encomenda%TYPE;
+    id_cliente ENCOMENDA.id_cliente%TYPE;
+    nome_cliente CLIENTE.nome%TYPE;
+    valor FLOAT;
+    data_entrega ENCOMENDA.data_entrega%TYPE;
+    data_pagamento ENCOMENDA.data_pagamento%TYPE;
+  BEGIN
+    DBMS_OUTPUT.PUT_LINE('Encomendas PAGAS:');
+    DBMS_OUTPUT.PUT_LINE('');
+
+    FOR encomenda IN encomendas LOOP
+      id_encomenda := encomenda.id_encomenda;
+      id_cliente := encomenda.id_cliente;
+      data_entrega := encomenda.data_entrega;
+      data_pagamento := encomenda.data_pagamento;
+
+      SELECT SUM(preco_unitario * quantidade * (1 + iva/100))
+      INTO valor
+      FROM produtoencomenda 
+      WHERE id_encomenda = id_encomenda;
+
+      SELECT nome
+      INTO nome_cliente
+      FROM cliente
+      WHERE id_cliente = id_cliente;
+
+      DBMS_OUTPUT.PUT_LINE('Encomenda ' || id_encomenda || ' do cliente ' || nome_cliente || ' no valor de ' || TRUNC(valor, 2) || ' euros.');
+
+      IF data_entrega IS NOT NULL THEN
+        DBMS_OUTPUT.PUT_LINE('Entregue a ' || TO_CHAR(data_entrega, 'DD/MM/YYYY') || '.');
+      END IF;
+
+      DBMS_OUTPUT.PUT_LINE('Pagamento registado a ' || TO_CHAR(data_pagamento, 'DD/MM/YYYY') || '.');
+
+      DBMS_OUTPUT.PUT_LINE('Estado: PAGA.');
+  
+      DBMS_OUTPUT.PUT_LINE('');
+    END LOOP;
+  END listar_encomendas_pagas;
 END gestao_encomendas;
