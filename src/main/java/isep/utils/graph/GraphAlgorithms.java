@@ -388,4 +388,79 @@ public class GraphAlgorithms {
 
   }
 
-}
+
+
+  
+  /**
+   * Performs breadth-first search of a Graph starting in a vertex
+   *
+   * @param g    Graph instance
+   * @param vert vertex that will be the source of the search
+   * @param c    class being searched
+   * @return     LinkedList with the vertices of breadth-first search that are an instance of a specific class
+   */
+  public static <V, E> LinkedList<V> BreadthFirstSearchSpecificClass(Graph<V, E> g, V vert, Class c) {
+    Queue<V> queue = new LinkedList<>();
+    LinkedList<V> visited = new LinkedList<>();
+    LinkedList<V> result = new LinkedList<>();
+
+    queue.add(vert);
+    visited.add(vert);
+    if(vert.getClass() == c)
+      result.add(vert);
+    
+    while (!queue.isEmpty()) {
+      V v = queue.poll();
+      Collection<V> adj = g.adjVertices(v);
+      if (adj == null)
+        return null;
+      for (V w : adj) {
+        if (!visited.contains(w)) {
+          visited.add(w);
+          queue.add(w);
+          if (w.getClass() == c)
+            result.add(w);
+        }
+      }
+    }
+    return result; 
+  }
+
+
+
+  /**
+   * Performs breadth-first search of a Graph starting in a vertex
+   *
+   * @param g    Graph instance
+   * @param vert vertex that will be the source of the search
+   * @param c    class being searched
+   * @return     LinkedList with the vertices of breadth-first search that are an instance of specific class
+   */
+  public static <V, E> LinkedList<V> BreadthFirstSearchNotSpecificClass(Graph<V, E> g, V vert, Class c) {
+    Queue<V> queue = new LinkedList<>();
+    LinkedList<V> visited = new LinkedList<>();
+    LinkedList<V> result = new LinkedList<>();
+
+    queue.add(vert);
+    visited.add(vert);
+    if(vert.getClass() != c)
+      result.add(vert);
+    
+    while (!queue.isEmpty()) {
+      V v = queue.poll();
+      Collection<V> adj = g.adjVertices(v);
+      if (adj == null)
+        return null;
+      for (V w : adj) {
+        if (!visited.contains(w)) {
+          visited.add(w);
+          queue.add(w);
+          if (w.getClass() != c)
+            result.add(w);
+        }
+      }
+    }
+    return result; 
+  }
+
+} 
