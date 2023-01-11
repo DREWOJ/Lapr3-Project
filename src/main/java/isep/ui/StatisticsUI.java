@@ -2,7 +2,6 @@ package isep.ui;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import isep.controller.App;
 import isep.controller.ExpeditionListStatisticsController;
 import isep.ui.utils.Utils;
@@ -16,16 +15,16 @@ public class StatisticsUI implements Runnable {
   private void showStatisticsOfOptions(int option) {
     switch (option) {
       case 1:
-        Utils.showList(controller.getBasketsStatistics(), "Baskets' Statistics");
+        Utils.showTable(controller.getBasketsStatistics(), "\nBaskets' Statistics\n");
         break;
       case 2:
-        Utils.showList(controller.getClientsStatistics(), "Clients' Statistics");
+        Utils.showTable(controller.getClientsStatistics(), "\nClients' Statistics\n");
         break;
       case 3:
-        Utils.showList(controller.getProducersStatistics(), "Producers' Statistics");
+        Utils.showTable(controller.getProducersStatistics(), "\nProducers' Statistics\n");
         break;
       case 4:
-        Utils.showList(controller.getHubsStatistics(), "Hubs' Statistics");
+        Utils.showTable(controller.getHubsStatistics(), "\nHubs' Statistics\n");
         break;
       default:
         break;
@@ -34,7 +33,8 @@ public class StatisticsUI implements Runnable {
 
   @Override
   public void run() {
-    controller = new ExpeditionListStatisticsController(App.getInstance().getCompany().getCurrentExpeditionList());
+    controller = new ExpeditionListStatisticsController(
+        App.getInstance().getCompany().getCurrentExpeditionList());
 
     if (!controller.isExpeditionListLoaded()) {
       System.out.println("\nPlease load an expedition list first...");
@@ -57,5 +57,4 @@ public class StatisticsUI implements Runnable {
       showStatisticsOfOptions(option);
     } while (option < 0 || option > 4);
   }
-
 }

@@ -9,9 +9,9 @@
 -- A dimensão Ano é composta por 1 atributo: ano.
 -- A dimensão Mes é composta por 1 atributo: mes.
 -- A dimensão Cliente é composta por 3 atributos: id_cliente, nome e nif.
--- A dimensão Produto é composta por 3 atributos: id_produto, tipo e designacao.
--- A dimensão DesignacaoProduto é composta por 1 atributo: designacao.
--- A dimensão TipoProduto é composta por 1 atributo: tipo.
+-- A dimensão Produto é composta por 3 atributos: id_produto, tipo_cultura e cultura.
+-- A dimensão Cultura é composta por 1 atributo: designacao.
+-- A dimensão TipoCultura é composta por 1 atributo: tipo.
 -- A dimensão Setor é composta por 2 atributos: id_setor e nome.
 -- A fact table Venda é composta por 6 atributos: id_venda, id_cliente, id_produto, id_setor, id_tempo e quantidade.
 -- A fact table Producao é composta por 5 atributos: id_producao, id_produto, id_setor, id_tempo e quantidade.
@@ -22,15 +22,17 @@
 -- É um DB complexa.
 
 -- Estimativa de cardinalidades:
--- A estimativa da cardinalidade é importante porque ela afeta o design da base de dados e o desempenho das consultas. Se a cardinalidade for subestimada, isso pode levar ao desperdício de recursos, como espaço em disco ou memória, ou ao uso excessivo de recursos. Por outro lado, se a cardinalidade for sobrestimada, isso pode levar ao desperdício de espaço em disco e ao aumento do tempo de inserção de dados.
+-- A estimativa da cardinalidade é importante porque ela afeta o design da base de dados e o desempenho das consultas.
+-- Se a cardinalidade for subestimada, isso pode levar ao desperdício de recursos, como espaço em disco ou memória, ou ao uso excessivo de recursos.
+-- Por outro lado, se a cardinalidade for sobrestimada, isso pode levar ao desperdício de espaço em disco e ao aumento do tempo de inserção de dados.
 -- A cardinalidade de uma tabela é o número de linhas que ela pode conter. A cardinalidade de uma coluna é o número de valores distintos que ela pode conter.
 -- Tempo: a dimensão Tempo pode ter cardinalidade de 12 (meses) * 100 (anos) = 1200.
 -- ano: a dimensão ano pode ter cardinalidade de 100 (anos).
 -- mes: a dimensão mes pode ter cardinalidade de 12 (meses).
 -- Cliente: a dimensão Cliente pode ter cardinalidade de 100000 (clientes).
 -- Produto: a dimensão Produto pode ter cardinalidade de 1000 (produtos).
--- DesignacaoProduto: a dimensão DesignacaoProduto pode ter cardinalidade de 100 (designações).
--- TipoProduto: a dimensão TipoProduto pode ter cardinalidade de 10 (tipos).
+-- Cultura: a dimensão Cultura pode ter cardinalidade de 100 (designações).
+-- TipoCultura: a dimensão TipoCultura pode ter cardinalidade de 10 (tipos).
 -- Setor: a dimensão Setor pode ter cardinalidade de 10 (setores).
 -- Venda: a fact table Venda pode ter cardinalidade de 1000000 (vendas).
 -- Producao: a fact table Producao pode ter cardinalidade de 1000000 (produções).
@@ -38,8 +40,8 @@
 
 -- DROP TABLES --
 DROP TABLE Cliente CASCADE CONSTRAINTS PURGE;
-DROP TABLE DesignacaoProduto CASCADE CONSTRAINTS PURGE;
-DROP TABLE TipoProduto CASCADE CONSTRAINTS PURGE;
+DROP TABLE Cultura CASCADE CONSTRAINTS PURGE;
+DROP TABLE TipoCultura CASCADE CONSTRAINTS PURGE;
 DROP TABLE Produto CASCADE CONSTRAINTS PURGE;
 DROP TABLE Setor CASCADE CONSTRAINTS PURGE;
 DROP TABLE ano CASCADE CONSTRAINTS PURGE;
@@ -58,23 +60,23 @@ CREATE TABLE Cliente (
   CONSTRAINT CHK_Nif    CHECK (nif > 100000000 AND nif < 999999999)
 );
 
-CREATE TABLE DesignacaoProduto (
+CREATE TABLE Cultura (
   designacao VARCHAR2(50) NOT NULL,
   PRIMARY KEY (designacao)
 );
 
-CREATE TABLE TipoProduto (
+CREATE TABLE TipoCultura (
   tipo VARCHAR2(50) NOT NULL,
   PRIMARY KEY (tipo)
 );
 
 CREATE TABLE Produto (
   id_produto NUMBER(5) NOT NULL,
-  tipo VARCHAR2(50) NOT NULL,
-  designacao VARCHAR2(50) NOT NULL,
+  tipo_cultura VARCHAR2(50) NOT NULL,
+  cultura VARCHAR2(50) NOT NULL,
   PRIMARY KEY (id_produto),
-  FOREIGN KEY (designacao) REFERENCES DesignacaoProduto (designacao),
-  FOREIGN KEY (tipo) REFERENCES TipoProduto (tipo)
+  FOREIGN KEY (designacao) REFERENCES Cultura (designacao),
+  FOREIGN KEY (tipo) REFERENCES TipoCultura (tipo)
 );
 
 

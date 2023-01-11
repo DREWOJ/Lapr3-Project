@@ -1,5 +1,7 @@
 package isep.model;
 
+import java.util.List;
+
 import isep.model.store.AgriculturalParcelStore;
 import isep.model.store.CultivationStore;
 import isep.model.store.EntityStore;
@@ -12,7 +14,7 @@ import isep.model.store.EntityStore;
  * @author Tomás Russo <1211288@isep.ipp.pt>
  */
 public class Company {
-  private final EntityStore entityStore;
+  private EntityStore entityStore;
   private final AgriculturalParcelStore agriculturalParcelStore;
   private final CultivationStore cultivationStore;
 
@@ -20,9 +22,12 @@ public class Company {
   private ExpeditionList currentExpeditionList;
   private String currentEntitiesFilePath = null;
   private String currentDistancesFilePath = null;
+  private String currentBasketsFilePath = null;
+  private Integer currentExpeditionListDay = null;
+  private Integer currentDefinedHubs = null;
 
   public Company() {
-    this.distributionNetwork = new DistributionNetwork();
+    setDistributionNetwork(new DistributionNetwork());
     this.entityStore = new EntityStore();
     this.agriculturalParcelStore = new AgriculturalParcelStore();
     this.cultivationStore = new CultivationStore();
@@ -52,6 +57,22 @@ public class Company {
     this.currentDistancesFilePath = currentDistancesFilePath;
   }
 
+  public String getCurrentExpeditionListDay() {
+    return currentExpeditionListDay == null ? null : currentExpeditionListDay.toString();
+  }
+
+  public void setCurrentExpeditionListDay(int currentExpeditionListDay) {
+    this.currentExpeditionListDay = currentExpeditionListDay;
+  }
+
+  public String getCurrentBasketsFilePath() {
+    return currentBasketsFilePath;
+  }
+
+  public void setCurrentBasketsFilePath(String currentBasketsFilePath) {
+    this.currentBasketsFilePath = currentBasketsFilePath;
+  }
+
   public void setDistributionNetwork(DistributionNetwork distributionNetwork) {
     this.distributionNetwork = distributionNetwork;
   }
@@ -70,5 +91,17 @@ public class Company {
 
   public CultivationStore getCultivationStore() {
     return cultivationStore;
+  }
+
+  public void setEntityStore(EntityStore entityStore) {
+    this.entityStore = entityStore;
+  }
+
+  public String getCurrentDefinedHubs() {
+    return currentDefinedHubs == null ? null : currentDefinedHubs.toString();
+  }
+
+  public void setCurrentDefinedHubs(Integer hubs) {
+    this.currentDefinedHubs = hubs;
   }
 }

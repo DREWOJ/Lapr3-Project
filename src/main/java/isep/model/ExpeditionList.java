@@ -87,15 +87,12 @@ public class ExpeditionList {
       clients.add(basket.getClient());
 
     return clients;
-
   }
 
   /**
-   * Get, for each hub in the ExpeditionList, all producers that deliver to that
-   * hub.
+   * Get, for each hub in the ExpeditionList, all producers that deliver to that hub.
    *
-   * @return A {@code Map} that associates a Hub ({@code Enterprise} object) to a
-   *         list of
+   * @return A {@code Map} that associates a Hub ({@code Enterprise} object) to a list of
    *         {@code Producer} objects.
    */
   public Map<Enterprise, List<Producer>> getProducersThatSupplyHubs() {
@@ -145,8 +142,8 @@ public class ExpeditionList {
     return basket.getNumberOfNotSatisfiedProducts();
   }
 
-  public double getPercentageOfFullySatisfiedProducts(Basket basket) {
-    return basket.getNumberOfFullySatisfiedProducts() / (double) basket.getNumberOfProducts();
+  public double getBasketFulfillmentPercentage(Basket basket) {
+    return basket.getBasketFulfillmentPercentage();
   }
 
   public int getNumberOfDistinctProducersForBasket(Basket basket) {
@@ -273,21 +270,32 @@ public class ExpeditionList {
 
   public int getNumberOfOutOfStockProducts(Producer producer) {
     int count = 0;
+    Map<Product, Double> totalSuppliedQuantity = new HashMap<>();
 
-    for (Basket basket : baskets)
+    for (Basket basket : baskets) {
       for (Product product : basket.getProducts()) {
-        Double availableStock = producer.getNonExpiredQuantityUntilDate(product, day);
         Double suppliedQuantity = basket.getQuantityOfSuppliedProduct(producer, product);
 
-        if (availableStock <= suppliedQuantity)
-          count++;
+        Double currentSuppliedStock = totalSuppliedQuantity.get(product) == null ? 0
+            : totalSuppliedQuantity.get(product);
+
+        totalSuppliedQuantity.put(product, currentSuppliedStock + suppliedQuantity);
       }
+    }
+
+    for (Product product : totalSuppliedQuantity.keySet()) {
+      Double availableStock = producer.getNonExpiredQuantityUntilDate(product, day);
+      Double suppliedQuantity = totalSuppliedQuantity.get(product);
+
+      if (availableStock.compareTo(suppliedQuantity) <= 0)
+        count++;
+    }
 
     return count;
   }
 
   @Override
-  public String toString(){
+  public String toString() {
     String result = "Expedition List - Day " + this.day + "\n\n";
 
     for (int i = 0; i < baskets.size(); i++) {

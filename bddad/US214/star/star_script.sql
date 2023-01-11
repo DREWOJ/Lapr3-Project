@@ -7,18 +7,19 @@
 -- O modelo de dados é composto por 4 dimensões e 2 fact tables.
 -- A dimensão Tempo é composta por 3 atributos: ano, mes e id_tempo.
 -- A dimensão Cliente é composta por 3 atributos: id_cliente, nome e nif.
--- A dimensão Produto é composta por 3 atributos: id_produto, tipo e designacao.
+-- A dimensão Produto é composta por 3 atributos: id_produto, tipo_cultura e cultura.
 -- A dimensão Setor é composta por 2 atributos: id_setor e nome.
 -- A fact table Venda é composta por 6 atributos: id_venda, id_cliente, id_produto, id_setor, id_tempo e quantidade.
 -- A fact table Producao é composta por 5 atributos: id_producao, id_produto, id_setor, id_tempo e quantidade.
 
 -- Este esquema 'Star' tem as hierarquias divididas em dimensões separadas.
--- Existe grande redundância de dados
 -- Um simples join com a fact table é suficiente para obter os dados.
 -- É um modelo simples e fácil de implementar.
 
 -- Estimativa de cardinalidades:
--- A estimativa da cardinalidade é importante porque ela afeta o design da base de dados e o desempenho das consultas. Se a cardinalidade for subestimada, isso pode levar ao desperdício de recursos, como espaço em disco ou memória, ou ao uso excessivo de recursos. Por outro lado, se a cardinalidade for sobrestimada, isso pode levar ao desperdício de espaço em disco e ao aumento do tempo de inserção de dados.
+-- A estimativa da cardinalidade é importante porque ela afeta o design da base de dados e o desempenho das consultas.
+-- Se a cardinalidade for subestimada, isso pode levar ao desperdício de recursos, como espaço em disco ou memória, ou ao uso excessivo de recursos.
+-- Por outro lado, se a cardinalidade for sobrestimada, isso pode levar ao desperdício de espaço em disco e ao aumento do tempo de inserção de dados.
 -- A cardinalidade de uma tabela é o número de linhas que ela pode conter. A cardinalidade de uma coluna é o número de valores distintos que ela pode conter.
 -- Tempo: a dimensão Tempo pode ter cardinalidade de 12 (meses) * 100 (anos) = 1200.
 -- Cliente: a dimensão Cliente pode ter cardinalidade de 100000 (clientes).
@@ -47,8 +48,8 @@ CREATE TABLE Cliente (
 
 CREATE TABLE Produto (
   id_produto NUMBER(5) NOT NULL,
-  tipo VARCHAR2(50) NOT NULL,
-  designacao VARCHAR2(50) NOT NULL,
+  tipo_cultura VARCHAR2(50) NOT NULL,
+  cultura VARCHAR2(50) NOT NULL,
   PRIMARY KEY (id_produto)
 );
 
